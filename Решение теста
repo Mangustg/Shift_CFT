@@ -1,0 +1,187 @@
+select  product_type_id from products 
+where product_type_id=2
+order by id 
+
+--Сформируйте отчет, который содержит все счета, 
+--относящиеся к продуктам типа ДЕПОЗИТ, 
+--принадлежащих клиентам,
+--у которых имеется более одного открытого продукта.
+
+
+SELECT product_type_id, COUNT(*)
+FROM products
+GROUP BY product_type_id 
+HAVING COUNT(*) > 1
+
+
+
+select  client_ref 
+from products 
+group by client_ref
+
+
+ select client_ref
+ from products 
+ group by client_ref
+ having count(*) > 1 
+ order by client_ref
+
+
+--ЗАДАНИЕ 3
+select *
+from accounts 
+where client_ref in (select distinct UNIQ_CLIENTS
+from (select client_ref as UNIQ_CLIENTS
+from products
+where  client_ref in (select client_ref
+ from products 
+ group by client_ref
+ having count(*) > 1 
+ order by client_ref) and product_type_id=2
+ order by id) as UNIQ) and product_ref=2
+
+
+
+ 
+ 
+-- 
+---- 4.	Сформируйте выборку, которая содержит счета, 
+--относящиеся к продуктам типа ДЕПОЗИТ или КАРТА,
+--по которым были операции внесения средств на счет в рамках одного произвольного дня.
+-- -----------------------
+  select * 
+ from accounts 
+ where id in 
+ (select  acc_ref 
+ from records 
+ where oper_date in  (select  oper_date 
+ from records 
+ where acc_ref in (select id 
+ from accounts 
+ where product_ref=2 or product_ref=3) and dt=0
+group by oper_date
+HAVING COUNT(*) > 1) )
+
+
+-----------------
+-- (select id 
+-- from accounts 
+-- where product_ref=2 or product_ref=3)--счета с депозитом или картой
+ 
+  select id, oper_date 
+ from records 
+ where acc_ref in (select id 
+ from accounts 
+ where product_ref=2 or product_ref=3) and dt=0 -- счета с депозитом и катрой в таблице records
+
+ 
+
+ 
+ 
+
+ (select  oper_date 
+ from records 
+ where acc_ref in (select id 
+ from accounts 
+ where product_ref=2 or product_ref=3) and dt=0
+group by oper_date
+HAVING COUNT(*) > 1)  -- даты дублирующихся дат, то есть в этот день были две операции внесения средст (для депозит и карта) 
+
+
+
+
+
+ (select  oper_date 
+ from records 
+ where acc_ref in (select id 
+ from accounts 
+ where product_ref=2 or product_ref=3) and dt=0
+group by oper_date
+HAVING COUNT(*) > 2) -- даты  то есть в этот день были три операции внесения средст (для депозит и карта) в разных счетах были
+
+
+
+--5.	Найдите клиентов, у которых открыт продукт типа КРЕДИТ,
+ --и у которых сумма всех дебетовых операций по таким продуктам 
+-- превышает сумму всех кредитовых операций.
+
+select client_ref
+from accounts a 
+where id in (select acc_ref
+from records r 
+where acc_ref in (select id
+from accounts a 
+where product_ref=1)
+group by acc_ref
+HAVING SUM(CASE 
+    WHEN dt = 0 
+    THEN -sum 
+    ELSE sum 
+    END) > 0) -- нашли клинтов
+
+
+
+
+select acc_ref,
+	SUM(CASE 
+		WHEN dt = 0 
+		THEN -sum 
+		ELSE sum 
+		END) AS all_sum
+from records r 
+where acc_ref in (select id
+from accounts a 
+where product_ref=1)
+group by acc_ref
+HAVING SUM(CASE 
+    WHEN dt = 0 
+    THEN -sum 
+    ELSE sum 
+    END) > 0; -- нашли аккаунты превышающие
+
+  
+    
+    
+ --7.	Сформируйте выборку, которая содержит информацию о клиентах,
+ --которые полностью погасили кредит,
+ --но при этом не закрыли продукт (по продукту есть операция новой выдачи кредита). 
+ --Выведите в выборке наименование продукта и сумму кредита и количество операций его гашения.
+ 
+SELECT p.name -- или p.client_ref, в зависимости от того, данные из какой таблицы вам нужны
+FROM accounts a 
+inner  JOIN products p
+ON p.client_ref = a.client_ref 
+WHERE saldo = 0;
+    
+select client_ref 
+from accounts 
+where client_ref in
+(select client_ref
+from accounts a 
+where saldo=0 ) and saldo<0 
+
+select a.client_ref
+from accounts a 
+where saldo=0
+
+select a.client_ref, id
+from accounts a
+--inner  JOIN products p
+--ON p.client_ref = a.client_ref 
+--inner join records r 
+--on a.id=r.acc_ref 
+where a.client_ref in
+(select client_ref
+from accounts a 
+where saldo=0 ) 
+
+--group by a.client_ref --клинты такие 
+
+
+
+
+SELECT p.name -- или p.client_ref, в зависимости от того, данные из какой таблицы вам нужны
+FROM accounts a 
+inner  JOIN products p
+ON p.client_ref = a.client_ref 
+WHERE saldo = 0;
