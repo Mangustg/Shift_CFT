@@ -146,42 +146,24 @@ HAVING SUM(CASE
  --которые полностью погасили кредит,
  --но при этом не закрыли продукт (по продукту есть операция новой выдачи кредита). 
  --Выведите в выборке наименование продукта и сумму кредита и количество операций его гашения.
- 
-SELECT p.name -- или p.client_ref, в зависимости от того, данные из какой таблицы вам нужны
-FROM accounts a 
+
+
+select 100000 as сумма_кредита,
+count(r.acc_ref)-1 as количетсво_операций_гашения,-- количество гашений отсюда считать будем
+r.acc_ref as НОМЕР_СЧЕТА , 
+a.client_ref as Клиент ,
+p.name as ИМЯ_ПРОДУКТА
+from accounts a
+inner  JOIN records  r
+ON r.acc_ref = a.id     -- делаем джойны по связям 
 inner  JOIN products p
 ON p.client_ref = a.client_ref 
-WHERE saldo = 0;
-    
-select client_ref 
-from accounts 
-where client_ref in
-(select client_ref
-from accounts a 
-where saldo=0 ) and saldo<0 
-
-select a.client_ref
-from accounts a 
-where saldo=0
-
-select a.client_ref, id
-from accounts a
---inner  JOIN products p
---ON p.client_ref = a.client_ref 
---inner join records r 
---on a.id=r.acc_ref 
 where a.client_ref in
 (select client_ref
 from accounts a 
-where saldo=0 ) 
-
---group by a.client_ref --клинты такие 
-
-
-
-
-SELECT p.name -- или p.client_ref, в зависимости от того, данные из какой таблицы вам нужны
-FROM accounts a 
-inner  JOIN products p
-ON p.client_ref = a.client_ref 
-WHERE saldo = 0;
+where saldo<0)-- все отриц счета
+and saldo=0 -- где кредит закрыт то есть сальдо равно 0 
+group by r.acc_ref , -- сгрупируем рекорд тоесть наши операции для подсчета количества операций и вывода номера этого счета (он также сгрупируется)
+a.client_ref ,  -- клиентские id
+p.name  -- имена договоров
+ 
